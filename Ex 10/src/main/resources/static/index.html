@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-time Sensor Readings</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>Real-time Sensor Readings</h2>
+    <p id="status">Connecting to sensor stream...</p>
+    <button onclick="addReading()">Add Reading</button>
+    <canvas id="chart"></canvas>
+
+    <script>
+        const labels = [];
+        const values = [];
+
+        const chart = new Chart(document.getElementById('chart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sensor Value',
+                    data: values,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                animation: false,
+                responsive: true
+            }
+        });
+
+        const source = new EventSource('stream/readings');
+
+        source.onopen = () => {
+            document.getElementById('status').innerText =
+                'Connected — receiving sensor readings';
+        };
+
+        source.onmessage = (event) => {
+            const reading = JSON.parse(event.data);
+            labels.push(new Date(reading.timestamp).toLocaleTimeString());
+            values.push(reading.value);
+
+            if (labels.length > 20) {
+                labels.shift();
+                values.shift();
+            }
+
+            chart.update();
+        };
+
+        source.onerror = () => {
+            document.getElementById('status').innerText =
+                'Stream connection failed. Check the server.';
+        };
+
+        function addReading() {
+            const value = (20 + Math.random() * 10).toFixed(2);
+
+            fetch('api/readings?value=' + value, {
+                method: 'POST'
+            }).catch(console.error);
+        }
+    </script>
+</body>
+</html>
