@@ -1,0 +1,4 @@
+com\example\aopdemo\controller\StudentController.class
+com\example\aopdemo\AopDemoApplication.class
+com\example\aopdemo\aspect\LoggingAspect.class
+com\example\aopdemo\service\StudentService.class
